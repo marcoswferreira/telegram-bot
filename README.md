@@ -77,6 +77,43 @@ curl -X POST http://localhost:8080/api/v1/messages \
   }'
 ```
 
+### Manage Groups & Channels (`chat_id` in path)
+Requires the bot to be an **administrator** with appropriate permissions in the target group/channel:
+
+```bash
+# Get chat metadata
+curl -H "X-API-Key: $API_KEY" http://localhost:8080/api/v1/chats/-1001234567890
+
+# Update title / description
+curl -X PUT http://localhost:8080/api/v1/chats/-1001234567890/title \
+  -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" \
+  -d '{"title": "New Channel Title"}'
+
+curl -X PUT http://localhost:8080/api/v1/chats/-1001234567890/description \
+  -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" \
+  -d '{"description": "Channel description"}'
+
+# Upload or delete photo
+curl -X PUT http://localhost:8080/api/v1/chats/-1001234567890/photo \
+  -H "X-API-Key: $API_KEY" -F "photo=@./logo.png"
+
+curl -X DELETE http://localhost:8080/api/v1/chats/-1001234567890/photo \
+  -H "X-API-Key: $API_KEY"
+
+# Pin / unpin message
+curl -X POST http://localhost:8080/api/v1/chats/-1001234567890/pin \
+  -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" \
+  -d '{"message_id": 42, "disable_notification": true}'
+
+curl -X DELETE http://localhost:8080/api/v1/chats/-1001234567890/pin \
+  -H "X-API-Key: $API_KEY"
+
+# Create invite link
+curl -X POST http://localhost:8080/api/v1/chats/-1001234567890/invite-links \
+  -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" \
+  -d '{"name": "VIP", "member_limit": 10}'
+```
+
 ## Testing & Code Coverage
 ```bash
 cargo fmt --all -- --check

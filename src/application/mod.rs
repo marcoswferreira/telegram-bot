@@ -1,2 +1,10 @@
+pub mod create_invite_link_use_case;
+pub mod delete_chat_photo_use_case;
+pub mod get_chat_use_case;
+pub mod pin_message_use_case;
 pub mod send_message_command;
 pub mod send_message_use_case;
+pub mod set_chat_description_use_case;
+pub mod set_chat_photo_use_case;
+pub mod set_chat_title_use_case;
+pub mod unpin_message_use_case;

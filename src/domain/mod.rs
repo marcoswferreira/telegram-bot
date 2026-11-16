@@ -1,4 +1,11 @@
+pub mod chat_description;
+pub mod chat_gateway;
+pub mod chat_info;
+pub mod chat_photo;
+pub mod chat_title;
 pub mod domain_error;
+pub mod invite_link;
+pub mod invite_link_options;
 pub mod message_gateway;
 pub mod message_request;
 pub mod parse_mode;

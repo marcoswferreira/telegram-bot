@@ -1,5 +1,9 @@
 pub mod config;
+pub mod telegram_api_envelope;
+pub mod telegram_chat_dto;
+pub mod telegram_chat_gateway;
 pub mod telegram_gateway;
+pub mod telegram_invite_link_dto;
 pub mod telegram_message_dto;
 pub mod telegram_payload;
 pub mod telegram_response;
