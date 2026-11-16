@@ -11,6 +11,7 @@ pub struct Config {
     pub telegram_api_id: Option<i32>,
     pub telegram_api_hash: Option<String>,
     pub telegram_session_path: String,
+    pub telegram_bot_username: Option<String>,
 }
 
 impl Config {
@@ -50,6 +51,7 @@ impl Config {
         let telegram_api_hash = non_empty(lookup("TELEGRAM_API_HASH"));
         let telegram_session_path = non_empty(lookup("TELEGRAM_SESSION_PATH"))
             .unwrap_or_else(|| "./data/telegram.session".to_string());
+        let telegram_bot_username = non_empty(lookup("TELEGRAM_BOT_USERNAME"));
 
         Ok(Self {
             telegram_bot_token,
@@ -60,6 +62,7 @@ impl Config {
             telegram_api_id,
             telegram_api_hash,
             telegram_session_path,
+            telegram_bot_username,
         })
     }
 

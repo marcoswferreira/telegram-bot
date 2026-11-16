@@ -3,8 +3,10 @@ use std::sync::Arc;
 use crate::application::{
     create_channel_use_case::CreateChannelUseCase,
     create_invite_link_use_case::CreateInviteLinkUseCase,
-    delete_chat_photo_use_case::DeleteChatPhotoUseCase, get_chat_use_case::GetChatUseCase,
-    pin_message_use_case::PinMessageUseCase, send_message_use_case::SendMessageUseCase,
+    delete_chat_photo_use_case::DeleteChatPhotoUseCase,
+    delete_message_use_case::DeleteMessageUseCase, edit_message_use_case::EditMessageUseCase,
+    get_chat_use_case::GetChatUseCase, pin_message_use_case::PinMessageUseCase,
+    send_media_use_case::SendMediaUseCase, send_message_use_case::SendMessageUseCase,
     set_chat_description_use_case::SetChatDescriptionUseCase,
     set_chat_photo_use_case::SetChatPhotoUseCase, set_chat_title_use_case::SetChatTitleUseCase,
     unpin_message_use_case::UnpinMessageUseCase,
@@ -14,6 +16,9 @@ use crate::application::{
 #[derive(Clone)]
 pub struct AppState {
     pub send_message_use_case: Arc<SendMessageUseCase>,
+    pub edit_message_use_case: Arc<EditMessageUseCase>,
+    pub delete_message_use_case: Arc<DeleteMessageUseCase>,
+    pub send_media_use_case: Arc<SendMediaUseCase>,
     pub get_chat_use_case: Arc<GetChatUseCase>,
     pub set_chat_title_use_case: Arc<SetChatTitleUseCase>,
     pub set_chat_description_use_case: Arc<SetChatDescriptionUseCase>,

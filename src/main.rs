@@ -15,6 +15,26 @@ use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() {
+    if std::env::args().any(|arg| arg == "--healthcheck") {
+        let port = std::env::var("LISTEN_ADDR")
+            .ok()
+            .and_then(|raw| raw.rsplit(':').next().and_then(|p| p.parse::<u16>().ok()))
+            .unwrap_or(8080);
+        let url = format!("http://127.0.0.1:{port}/health");
+        let ok = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(3))
+            .build()
+            .ok()
+            .is_some();
+        if !ok {
+            std::process::exit(1);
+        }
+        match reqwest::get(&url).await {
+            Ok(resp) if resp.status().is_success() => std::process::exit(0),
+            _ => std::process::exit(1),
+        }
+    }
+
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),

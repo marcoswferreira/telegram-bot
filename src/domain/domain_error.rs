@@ -3,5 +3,9 @@
 pub enum DomainError {
     Validation(String),
     Unauthorized(String),
+    RateLimited {
+        message: String,
+        retry_after: Option<u64>,
+    },
     Upstream(String),
 }

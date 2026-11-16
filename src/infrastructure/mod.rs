@@ -9,3 +9,4 @@ pub mod telegram_invite_link_dto;
 pub mod telegram_message_dto;
 pub mod telegram_payload;
 pub mod telegram_response;
+pub mod telegram_response_parameters;

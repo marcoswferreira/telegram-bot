@@ -1,8 +1,11 @@
 pub mod create_channel_use_case;
 pub mod create_invite_link_use_case;
 pub mod delete_chat_photo_use_case;
+pub mod delete_message_use_case;
+pub mod edit_message_use_case;
 pub mod get_chat_use_case;
 pub mod pin_message_use_case;
+pub mod send_media_use_case;
 pub mod send_message_command;
 pub mod send_message_use_case;
 pub mod set_chat_description_use_case;

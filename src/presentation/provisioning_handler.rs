@@ -13,7 +13,7 @@ pub async fn create_channel(
 ) -> Result<(StatusCode, Json<CreatedChatHttpResponse>), ApiError> {
     let created = state
         .create_channel_use_case
-        .execute(req.title, req.description, false)
+        .execute(req.title, req.description, false, req.bot_username)
         .await?;
     Ok((
         StatusCode::CREATED,
@@ -28,7 +28,7 @@ pub async fn create_group(
 ) -> Result<(StatusCode, Json<CreatedChatHttpResponse>), ApiError> {
     let created = state
         .create_channel_use_case
-        .execute(req.title, req.description, true)
+        .execute(req.title, req.description, true, req.bot_username)
         .await?;
     Ok((
         StatusCode::CREATED,

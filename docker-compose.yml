@@ -9,7 +9,10 @@ services:
       - "8080:8080"
     volumes:
       - ./data:/data
-    mem_limit: 64m
+    mem_limit: 128m
     healthcheck:
-      test: ["CMD", "/telegram-bot", "--help"]
-      disable: true
+      test: ["CMD", "/telegram-bot", "--healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

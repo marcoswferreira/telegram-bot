@@ -4,8 +4,11 @@ use std::{
     sync::Arc,
 };
 
-use grammers_client::{Client, SenderPool, SignInError};
-use grammers_session::storages::SqliteSession;
+use grammers_client::{Client, InvocationError, SenderPool, SignInError};
+use grammers_session::{
+    storages::SqliteSession,
+    types::{PeerAuth, PeerId, PeerRef},
+};
 use grammers_tl_types as tl;
 
 use crate::domain::{
@@ -118,10 +121,64 @@ impl MtprotoChatGateway {
                 ttl_period: None,
             })
             .await
-            .map_err(|e| DomainError::Upstream(format!("MTProto CreateChannel failed: {e}")))?;
+            .map_err(|e| map_invocation_error("MTProto CreateChannel failed", e))?;
 
-        extract_created_chat(updates, request.megagroup)
+        let (created, channel_ref) = extract_created_chat(updates, request.megagroup)?;
+
+        if let Some(bot_username) = request.bot_username.as_deref() {
+            if let Some(ch_ref) = channel_ref {
+                self.promote_bot(ch_ref, bot_username).await?;
+            }
+        }
+
+        Ok(created)
     }
+
+    async fn promote_bot(
+        &self,
+        channel_ref: PeerRef,
+        bot_username: &str,
+    ) -> Result<(), DomainError> {
+        let bot_peer = self
+            .client
+            .resolve_username(bot_username)
+            .await
+            .map_err(|e| map_invocation_error("Failed to resolve bot_username", e))?
+            .ok_or_else(|| {
+                DomainError::Validation(format!("Bot username '@{bot_username}' not found"))
+            })?;
+
+        let bot_ref = bot_peer
+            .to_ref()
+            .await
+            .map_err(|e| DomainError::Upstream(format!("Failed to resolve bot peer ref: {e}")))?
+            .ok_or_else(|| DomainError::Upstream("Bot peer missing access_hash".to_string()))?;
+
+        self.client
+            .set_admin_rights(channel_ref, bot_ref)
+            .change_info(true)
+            .post_messages(true)
+            .edit_messages(true)
+            .delete_messages(true)
+            .invite_users(true)
+            .pin_messages(true)
+            .await
+            .map_err(|e| map_invocation_error("Failed to promote bot as admin", e))?;
+
+        Ok(())
+    }
+}
+
+fn map_invocation_error(context: &str, err: InvocationError) -> DomainError {
+    if let InvocationError::Rpc(ref rpc) = err {
+        if rpc.name == "FLOOD_WAIT" {
+            return DomainError::RateLimited {
+                message: format!("{context}: FLOOD_WAIT"),
+                retry_after: rpc.value.map(u64::from),
+            };
+        }
+    }
+    DomainError::Upstream(format!("{context}: {err}"))
 }
 
 impl ChatProvisioningGateway for MtprotoChatGateway {
@@ -136,7 +193,7 @@ impl ChatProvisioningGateway for MtprotoChatGateway {
 fn extract_created_chat(
     updates: tl::enums::Updates,
     is_supergroup: bool,
-) -> Result<CreatedChat, DomainError> {
+) -> Result<(CreatedChat, Option<PeerRef>), DomainError> {
     let chats = match updates {
         tl::enums::Updates::Updates(u) => u.chats,
         tl::enums::Updates::Combined(u) => u.chats,
@@ -146,15 +203,24 @@ fn extract_created_chat(
     for chat in chats {
         if let tl::enums::Chat::Channel(ch) = chat {
             let bot_api_id = format!("-100{}", ch.id).parse::<i64>().unwrap_or(-ch.id);
-            return Ok(CreatedChat {
-                id: bot_api_id,
-                title: ch.title,
-                chat_type: if is_supergroup {
-                    "supergroup".to_string()
-                } else {
-                    "channel".to_string()
-                },
+            let peer_ref = ch.access_hash.and_then(|hash| {
+                PeerId::channel(ch.id).map(|id| PeerRef {
+                    id,
+                    auth: PeerAuth::from_hash(hash),
+                })
             });
+            return Ok((
+                CreatedChat {
+                    id: bot_api_id,
+                    title: ch.title,
+                    chat_type: if is_supergroup {
+                        "supergroup".to_string()
+                    } else {
+                        "channel".to_string()
+                    },
+                },
+                peer_ref,
+            ));
         }
     }
 
@@ -244,7 +310,7 @@ mod tests {
             date: 0,
             seq: 0,
         });
-        let created = extract_created_chat(updates, false).unwrap();
+        let (created, _) = extract_created_chat(updates, false).unwrap();
         assert_eq!(created.id, -100123456);
         assert_eq!(created.title, "My Channel");
         assert_eq!(created.chat_type, "channel");
@@ -257,7 +323,7 @@ mod tests {
             seq_start: 0,
             seq: 0,
         });
-        let grp = extract_created_chat(combined, true).unwrap();
+        let (grp, _) = extract_created_chat(combined, true).unwrap();
         assert_eq!(grp.id, -100999);
         assert_eq!(grp.chat_type, "supergroup");
 

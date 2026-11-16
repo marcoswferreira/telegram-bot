@@ -91,6 +91,75 @@
       "afterResponse": "insomnia.test('Message sent with custom chat_id and HTML', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.message_id).to.be.a('number');\n});"
     },
     {
+      "_id": "req_send_photo",
+      "_type": "request",
+      "parentId": "fld_messages",
+      "name": "Send Photo (Multipart)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/messages/photo",
+      "headers": [
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "chat_id", "value": "{{ _.chat_id }}" },
+          { "name": "caption", "value": "Photo from Insomnia" },
+          { "name": "photo", "type": "file", "fileName": "" }
+        ]
+      },
+      "afterResponse": "insomnia.test('Photo sent', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.message_id).to.be.a('number');\n});"
+    },
+    {
+      "_id": "req_send_document",
+      "_type": "request",
+      "parentId": "fld_messages",
+      "name": "Send Document (Multipart)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/messages/document",
+      "headers": [
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "chat_id", "value": "{{ _.chat_id }}" },
+          { "name": "caption", "value": "Document from Insomnia" },
+          { "name": "document", "type": "file", "fileName": "" }
+        ]
+      },
+      "afterResponse": "insomnia.test('Document sent', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.message_id).to.be.a('number');\n});"
+    },
+    {
+      "_id": "req_edit_message",
+      "_type": "request",
+      "parentId": "fld_messages",
+      "name": "Edit Message",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/messages/1",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"text\": \"Edited message from Insomnia\"\n}"
+      },
+      "afterResponse": "insomnia.test('Message edited', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  insomnia.expect(insomnia.response.json().ok).to.eql(true);\n});"
+    },
+    {
+      "_id": "req_delete_message",
+      "_type": "request",
+      "parentId": "fld_messages",
+      "name": "Delete Message",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/messages/1",
+      "headers": [
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "afterResponse": "insomnia.test('Message deleted', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  insomnia.expect(insomnia.response.json().ok).to.eql(true);\n});"
+    },
+    {
       "_id": "req_get_chat",
       "_type": "request",
       "parentId": "fld_chat_mgmt",

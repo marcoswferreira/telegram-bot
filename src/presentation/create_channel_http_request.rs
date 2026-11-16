@@ -5,4 +5,5 @@ use serde::Deserialize;
 pub struct CreateChannelHttpRequest {
     pub title: String,
     pub description: Option<String>,
+    pub bot_username: Option<String>,
 }

@@ -7,4 +7,5 @@ pub struct CreateChannelRequest {
     pub description: ChatDescription,
     pub broadcast: bool,
     pub megagroup: bool,
+    pub bot_username: Option<String>,
 }

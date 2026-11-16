@@ -46,6 +46,9 @@ mod tests {
     use std::{future::Future, pin::Pin};
 
     use super::*;
+    use crate::domain::{
+        edit_message_request::EditMessageRequest, send_media_request::SendMediaRequest,
+    };
 
     struct FakeGateway {
         result: Result<i64, DomainError>,
@@ -55,6 +58,37 @@ mod tests {
         fn send<'a>(
             &'a self,
             _request: &'a MessageRequest,
+        ) -> Pin<Box<dyn Future<Output = Result<i64, DomainError>> + Send + 'a>> {
+            let res = self.result.clone();
+            Box::pin(async move { res })
+        }
+
+        fn edit_message<'a>(
+            &'a self,
+            _request: &'a EditMessageRequest,
+        ) -> Pin<Box<dyn Future<Output = Result<(), DomainError>> + Send + 'a>> {
+            Box::pin(async { Ok(()) })
+        }
+
+        fn delete_message<'a>(
+            &'a self,
+            _chat_id: &'a str,
+            _message_id: i64,
+        ) -> Pin<Box<dyn Future<Output = Result<(), DomainError>> + Send + 'a>> {
+            Box::pin(async { Ok(()) })
+        }
+
+        fn send_photo<'a>(
+            &'a self,
+            _request: SendMediaRequest,
+        ) -> Pin<Box<dyn Future<Output = Result<i64, DomainError>> + Send + 'a>> {
+            let res = self.result.clone();
+            Box::pin(async move { res })
+        }
+
+        fn send_document<'a>(
+            &'a self,
+            _request: SendMediaRequest,
         ) -> Pin<Box<dyn Future<Output = Result<i64, DomainError>> + Send + 'a>> {
             let res = self.result.clone();
             Box::pin(async move { res })

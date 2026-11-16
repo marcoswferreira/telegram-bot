@@ -1,0 +1,139 @@
+openapi: 3.1.0
+info:
+  title: Telegram Bot Relay & Management API
+  version: 0.1.0
+  description: Lightweight Rust HTTP-to-Telegram relay, chat management, and MTProto provisioning service.
+servers:
+  - url: http://localhost:8080
+security:
+  - ApiKeyHeader: []
+  - BearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+  /api/v1/messages:
+    post:
+      summary: Send text message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, maxLength: 4096 }
+                chat_id: { type: string }
+                parse_mode: { type: string, enum: [MarkdownV2, HTML, Markdown] }
+                disable_web_page_preview: { type: boolean }
+                disable_notification: { type: boolean }
+      responses:
+        "200": { description: Message sent }
+        "400": { description: Validation error }
+        "401": { description: Unauthorized }
+        "429": { description: Rate limited by Telegram }
+        "502": { description: Upstream Telegram error }
+  /api/v1/messages/photo:
+    post:
+      summary: Send photo (multipart/form-data, max 5 MB)
+      responses:
+        "200": { description: Photo sent }
+  /api/v1/messages/document:
+    post:
+      summary: Send document (multipart/form-data, max 20 MB)
+      responses:
+        "200": { description: Document sent }
+  /api/v1/chats/{chat_id}/messages/{message_id}:
+    put:
+      summary: Edit message text
+      parameters:
+        - name: chat_id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: message_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Message edited }
+    delete:
+      summary: Delete message
+      parameters:
+        - name: chat_id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: message_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Message deleted }
+  /api/v1/chats/{chat_id}:
+    get:
+      summary: Get chat metadata
+      parameters:
+        - name: chat_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Chat metadata }
+  /api/v1/chats/{chat_id}/title:
+    put:
+      summary: Update chat title
+      responses:
+        "200": { description: Title updated }
+  /api/v1/chats/{chat_id}/description:
+    put:
+      summary: Update chat description
+      responses:
+        "200": { description: Description updated }
+  /api/v1/chats/{chat_id}/photo:
+    put:
+      summary: Upload chat photo (multipart/form-data, max 5 MB)
+      responses:
+        "200": { description: Photo updated }
+    delete:
+      summary: Delete chat photo
+      responses:
+        "200": { description: Photo deleted }
+  /api/v1/chats/{chat_id}/pin:
+    post:
+      summary: Pin message
+      responses:
+        "200": { description: Message pinned }
+    delete:
+      summary: Unpin message
+      responses:
+        "200": { description: Message unpinned }
+  /api/v1/chats/{chat_id}/invite-links:
+    post:
+      summary: Create invite link
+      responses:
+        "200": { description: Invite link created }
+  /api/v1/chats/channels:
+    post:
+      summary: Create broadcast channel (MTProto)
+      responses:
+        "201": { description: Channel created }
+  /api/v1/chats/groups:
+    post:
+      summary: Create supergroup (MTProto)
+      responses:
+        "201": { description: Supergroup created }
+components:
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer

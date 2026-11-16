@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use reqwest::{
     multipart::{Form, Part},
-    Client, Response,
+    Client, Response, StatusCode,
 };
 use serde::de::DeserializeOwned;
 use serde_json::json;
@@ -71,6 +71,17 @@ impl TelegramChatGateway {
         let envelope: TelegramApiEnvelope<T> = resp.json().await.map_err(|e| {
             DomainError::Upstream(format!("Invalid Telegram response ({status}): {e}"))
         })?;
+
+        if status == StatusCode::TOO_MANY_REQUESTS {
+            let detail = envelope
+                .description
+                .unwrap_or_else(|| "Too Many Requests".to_string());
+            let retry_after = envelope.parameters.and_then(|p| p.retry_after);
+            return Err(DomainError::RateLimited {
+                message: format!("Telegram rate limit: {detail}"),
+                retry_after,
+            });
+        }
 
         if !status.is_success() || !envelope.ok {
             let detail = envelope

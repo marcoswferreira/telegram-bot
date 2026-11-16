@@ -27,6 +27,7 @@ fn test_config(api_key: Option<&str>) -> Config {
         telegram_api_id: None,
         telegram_api_hash: None,
         telegram_session_path: "./data/test.session".to_string(),
+        telegram_bot_username: None,
     }
 }
 
