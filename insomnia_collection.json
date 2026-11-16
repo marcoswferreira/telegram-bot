@@ -1,0 +1,361 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-11-16T15:37:00.000Z",
+  "__export_source": "telegram-bot.insomnia.v4",
+  "resources": [
+    {
+      "_id": "wrk_telegram_bot",
+      "_type": "workspace",
+      "name": "Telegram Bot API",
+      "description": "Lightweight Rust HTTP-to-Telegram Relay & Chat Management API",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_telegram_bot_base",
+      "_type": "environment",
+      "parentId": "wrk_telegram_bot",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "api_key": "change-me-to-a-strong-secret",
+        "chat_id": "-1001234567890"
+      }
+    },
+    {
+      "_id": "fld_health",
+      "_type": "request_group",
+      "parentId": "wrk_telegram_bot",
+      "name": "Health"
+    },
+    {
+      "_id": "fld_messages",
+      "_type": "request_group",
+      "parentId": "wrk_telegram_bot",
+      "name": "Messages (Bot API)"
+    },
+    {
+      "_id": "fld_chat_mgmt",
+      "_type": "request_group",
+      "parentId": "wrk_telegram_bot",
+      "name": "Chat Management (Bot API)"
+    },
+    {
+      "_id": "fld_provisioning",
+      "_type": "request_group",
+      "parentId": "wrk_telegram_bot",
+      "name": "Provisioning (MTProto)"
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "Health Check",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health",
+      "headers": [],
+      "afterResponse": "insomnia.test('Health check returns 200 ok', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  const body = insomnia.response.json();\n  insomnia.expect(body.status).to.eql('ok');\n});"
+    },
+    {
+      "_id": "req_send_message_default",
+      "_type": "request",
+      "parentId": "fld_messages",
+      "name": "Send Message (Default chat_id)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/messages",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"text\": \"Hello from Insomnia!\"\n}"
+      },
+      "afterResponse": "insomnia.test('Message sent with default chat_id', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.message_id).to.be.a('number');\n});"
+    },
+    {
+      "_id": "req_send_message_override",
+      "_type": "request",
+      "parentId": "fld_messages",
+      "name": "Send Message (Custom chat_id & HTML)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/messages",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"chat_id\": \"{{ _.chat_id }}\",\n  \"text\": \"<b>Alert:</b> Deployment succeeded!\",\n  \"parse_mode\": \"HTML\",\n  \"disable_web_page_preview\": true,\n  \"disable_notification\": false\n}"
+      },
+      "afterResponse": "insomnia.test('Message sent with custom chat_id and HTML', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.message_id).to.be.a('number');\n});"
+    },
+    {
+      "_id": "req_get_chat",
+      "_type": "request",
+      "parentId": "fld_chat_mgmt",
+      "name": "Get Chat Info",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}",
+      "headers": [
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "afterResponse": "insomnia.test('Get chat returns metadata', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.id).to.be.a('number');\n  insomnia.expect(body.chat_type).to.be.a('string');\n});"
+    },
+    {
+      "_id": "req_set_title",
+      "_type": "request",
+      "parentId": "fld_chat_mgmt",
+      "name": "Set Chat Title",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/title",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Canal Atualizado\"\n}"
+      },
+      "afterResponse": "insomnia.test('Set chat title succeeds', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  insomnia.expect(insomnia.response.json().ok).to.eql(true);\n});"
+    },
+    {
+      "_id": "req_set_description",
+      "_type": "request",
+      "parentId": "fld_chat_mgmt",
+      "name": "Set Chat Description",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/description",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"description\": \"Descrição atualizada via API\"\n}"
+      },
+      "afterResponse": "insomnia.test('Set chat description succeeds', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  insomnia.expect(insomnia.response.json().ok).to.eql(true);\n});"
+    },
+    {
+      "_id": "req_set_photo",
+      "_type": "request",
+      "parentId": "fld_chat_mgmt",
+      "name": "Set Chat Photo (Multipart)",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/photo",
+      "headers": [
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "photo",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      },
+      "afterResponse": "insomnia.test('Set chat photo succeeds', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  insomnia.expect(insomnia.response.json().ok).to.eql(true);\n});"
+    },
+    {
+      "_id": "req_delete_photo",
+      "_type": "request",
+      "parentId": "fld_chat_mgmt",
+      "name": "Delete Chat Photo",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/photo",
+      "headers": [
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "afterResponse": "insomnia.test('Delete chat photo succeeds', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  insomnia.expect(insomnia.response.json().ok).to.eql(true);\n});"
+    },
+    {
+      "_id": "req_pin_message",
+      "_type": "request",
+      "parentId": "fld_chat_mgmt",
+      "name": "Pin Message",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/pin",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"message_id\": 1,\n  \"disable_notification\": true\n}"
+      },
+      "afterResponse": "insomnia.test('Pin message succeeds', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  insomnia.expect(insomnia.response.json().ok).to.eql(true);\n});"
+    },
+    {
+      "_id": "req_unpin_message",
+      "_type": "request",
+      "parentId": "fld_chat_mgmt",
+      "name": "Unpin Message",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/pin",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "afterResponse": "insomnia.test('Unpin message succeeds', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  insomnia.expect(insomnia.response.json().ok).to.eql(true);\n});"
+    },
+    {
+      "_id": "req_create_invite_link",
+      "_type": "request",
+      "parentId": "fld_chat_mgmt",
+      "name": "Create Invite Link",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/chats/{{ _.chat_id }}/invite-links",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Convite VIP\",\n  \"member_limit\": 10\n}"
+      },
+      "afterResponse": "insomnia.test('Create invite link returns URL', () => {\n  insomnia.expect(insomnia.response.code).to.eql(200);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.invite_link).to.include('https://');\n});"
+    },
+    {
+      "_id": "req_create_channel",
+      "_type": "request",
+      "parentId": "fld_provisioning",
+      "name": "Create Broadcast Channel",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/chats/channels",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Meu Novo Canal\",\n  \"description\": \"Canal criado via MTProto\"\n}"
+      },
+      "afterResponse": "insomnia.test('Channel created via MTProto', () => {\n  insomnia.expect(insomnia.response.code).to.eql(201);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.chat_type).to.eql('channel');\n  insomnia.expect(body.id).to.be.a('number');\n});"
+    },
+    {
+      "_id": "req_create_group",
+      "_type": "request",
+      "parentId": "fld_provisioning",
+      "name": "Create Supergroup",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/chats/groups",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "X-API-Key", "value": "{{ _.api_key }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Meu Novo Grupo\",\n  \"description\": \"Grupo criado via MTProto\"\n}"
+      },
+      "afterResponse": "insomnia.test('Supergroup created via MTProto', () => {\n  insomnia.expect(insomnia.response.code).to.eql(201);\n  const body = insomnia.response.json();\n  insomnia.expect(body.ok).to.eql(true);\n  insomnia.expect(body.chat_type).to.eql('supergroup');\n  insomnia.expect(body.id).to.be.a('number');\n});"
+    },
+    {
+      "_id": "uts_telegram_bot",
+      "_type": "unit_test_suite",
+      "parentId": "wrk_telegram_bot",
+      "name": "Telegram Bot API - Automated Test Suite"
+    },
+    {
+      "_id": "ut_health",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "GET /health returns 200 OK",
+      "requestId": "req_health",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.status).to.equal('ok');"
+    },
+    {
+      "_id": "ut_send_message_default",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "POST /api/v1/messages (default chat_id) returns 200",
+      "requestId": "req_send_message_default",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);\nexpect(body.message_id).to.be.a('number');"
+    },
+    {
+      "_id": "ut_send_message_override",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "POST /api/v1/messages (custom chat_id + HTML) returns 200",
+      "requestId": "req_send_message_override",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);\nexpect(body.message_id).to.be.a('number');"
+    },
+    {
+      "_id": "ut_get_chat",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "GET /api/v1/chats/{chat_id} returns chat metadata",
+      "requestId": "req_get_chat",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);\nexpect(body.id).to.be.a('number');\nexpect(body.chat_type).to.be.a('string');"
+    },
+    {
+      "_id": "ut_set_title",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "PUT /api/v1/chats/{chat_id}/title returns 200",
+      "requestId": "req_set_title",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);"
+    },
+    {
+      "_id": "ut_set_description",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "PUT /api/v1/chats/{chat_id}/description returns 200",
+      "requestId": "req_set_description",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);"
+    },
+    {
+      "_id": "ut_delete_photo",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "DELETE /api/v1/chats/{chat_id}/photo returns 200",
+      "requestId": "req_delete_photo",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);"
+    },
+    {
+      "_id": "ut_pin_message",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "POST /api/v1/chats/{chat_id}/pin returns 200",
+      "requestId": "req_pin_message",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);"
+    },
+    {
+      "_id": "ut_unpin_message",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "DELETE /api/v1/chats/{chat_id}/pin returns 200",
+      "requestId": "req_unpin_message",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);"
+    },
+    {
+      "_id": "ut_create_invite_link",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "POST /api/v1/chats/{chat_id}/invite-links returns invite_link",
+      "requestId": "req_create_invite_link",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);\nexpect(body.invite_link).to.include('https://');"
+    },
+    {
+      "_id": "ut_create_channel",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "POST /api/v1/chats/channels returns 201",
+      "requestId": "req_create_channel",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(201);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);\nexpect(body.chat_type).to.equal('channel');"
+    },
+    {
+      "_id": "ut_create_group",
+      "_type": "unit_test",
+      "parentId": "uts_telegram_bot",
+      "name": "POST /api/v1/chats/groups returns 201",
+      "requestId": "req_create_group",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(201);\nconst body = JSON.parse(response.data);\nexpect(body.ok).to.equal(true);\nexpect(body.chat_type).to.equal('supergroup');"
+    }
+  ]
+}
