@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telegram Bot API — Documentation &amp; Setup Guide</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #111827;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --green: #34d399;
+      --amber: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .nav {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
+    .nav-links a:hover { color: var(--text); }
+    main { max-width: 1120px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    .hero {
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    h1 { margin: 0 0 0.75rem; font-size: 2rem; }
+    h2 {
+      margin-top: 2.5rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.35rem;
+    }
+    h3 { color: var(--accent); margin: 1.5rem 0 0.5rem; font-size: 1.05rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem;
+    }
+    .card h3 { margin: 0 0 0.4rem; }
+    .card p { margin: 0; font-size: 0.92rem; color: var(--muted); }
+    pre {
+      background: #030712;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.88rem;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.92rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.65rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--accent); background: var(--surface); }
+    .method {
+      display: inline-block;
+      min-width: 68px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 0.75rem;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #0b1120;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    .api-box {
+      margin-top: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      color: #111827;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a class="brand" href="#top">Telegram Bot Relay &amp; Management API</a>
+      <div class="nav-links">
+        <a href="#setup">Setup Guide</a>
+        <a href="#env">Environment</a>
+        <a href="#mtproto">MTProto Setup</a>
+        <a href="#endpoints">Endpoints</a>
+        <a href="#openapi">Interactive API</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <span class="badge">Rust · Clean Architecture · Dynamic Docs</span>
+      <h1>Telegram Bot HTTP Relay &amp; Channel Manager</h1>
+      <p>
+        A lightweight, single-binary Rust service for sending Telegram messages and media, managing
+        existing groups/channels via the Bot API, and provisioning new channels/supergroups via MTProto.
+      </p>
+      <a class="btn" href="./insomnia_collection.json" download>Download Insomnia Collection</a>
+    </section>
+
+    <section id="setup">
+      <h2>Step-by-Step Setup</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>1. Create a Telegram Bot</h3>
+          <p>Message <code>@BotFather</code> on Telegram, run <code>/newbot</code>, and copy your bot token.</p>
+        </div>
+        <div class="card">
+          <h3>2. Add Bot to Target Chat</h3>
+          <p>Add the bot to your group, or add it as an <strong>administrator</strong> in your channel with post/edit rights.</p>
+        </div>
+        <div class="card">
+          <h3>3. Configure <code>.env</code></h3>
+          <p>Copy <code>.env.example</code> to <code>.env</code> and set <code>TELEGRAM_BOT_TOKEN</code> and <code>API_KEY</code>.</p>
+        </div>
+        <div class="card">
+          <h3>4. Run the Service</h3>
+          <p>Start with <code>docker compose up -d --build</code> or run the compiled release binary directly.</p>
+        </div>
+      </div>
+
+      <h3>Run with Docker Compose (Recommended)</h3>
+      <pre><code>cp .env.example .env
+# Edit .env with your TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, and API_KEY
+docker compose up -d --build
+curl http://localhost:8080/health</code></pre>
+
+      <h3>Run Locally from Binary / Source</h3>
+      <pre><code>cp .env.example .env
+cargo run --release
+# Or run the prebuilt binary:
+./telegram-bot</code></pre>
+    </section>
+
+    <section id="env">
+      <h2>Environment Variables</h2>
+      <p class="muted">Automatically loaded from <code>.env.example</code> — no manual doc updates required.</p>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Default / Example</th><th>Description</th></tr>
+        </thead>
+        <tbody id="env-table-body">
+          <tr><td colspan="3" class="muted">Loading variables from <code>.env.example</code>...</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="mtproto">
+      <h2>Optional: MTProto Setup (Create Channels &amp; Groups)</h2>
+      <p>
+        The standard Telegram Bot API cannot create new channels or groups. To enable
+        <code>POST /api/v1/chats/channels</code> and <code>POST /api/v1/chats/groups</code>:
+      </p>
+      <pre><code># 1. Get TELEGRAM_API_ID and TELEGRAM_API_HASH from https://my.telegram.org
+# 2. Set them in .env (and optionally TELEGRAM_BOT_USERNAME=@your_bot to auto-promote your bot)
+# 3. Authorize your user session once interactively:
+./telegram-bot --mtproto-login
+
+# 4. Start the server normally (session is persisted in ./data/telegram.session)
+docker compose up -d</code></pre>
+    </section>
+
+    <section id="endpoints">
+      <h2>Available Endpoints</h2>
+      <p class="muted">Automatically generated from <code>openapi.yaml</code>.</p>
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Path</th><th>Summary</th><th>Auth</th></tr>
+        </thead>
+        <tbody id="endpoints-table-body">
+          <tr><td colspan="4" class="muted">Loading endpoints from <code>openapi.yaml</code>...</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="openapi">
+      <h2>Interactive API Reference</h2>
+      <p class="muted">Powered by <a href="./openapi.yaml" style="color: var(--accent);">openapi.yaml</a>.</p>
+      <div class="api-box">
+        <div id="swagger-ui"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    async function fetchWithFallback(paths) {
+      for (const p of paths) {
+        try {
+          const res = await fetch(p);
+          if (res.ok) return { text: await res.text(), url: p };
+        } catch (_) {}
+      }
+      throw new Error(`Unable to fetch ${paths.join(" or ")}`);
+    }
+
+    async function loadEnvVars() {
+      const tbody = document.getElementById("env-table-body");
+      try {
+        const { text } = await fetchWithFallback(["./.env.example", "../.env.example"]);
+        const rows = [];
+        let comments = [];
+
+        for (const rawLine of text.split(/\r?\n/)) {
+          const line = rawLine.trim();
+          if (!line) {
+            comments = [];
+            continue;
+          }
+          if (line.startsWith("#")) {
+            comments.push(line.replace(/^#\s*/, ""));
+            continue;
+          }
+          const eqIdx = line.indexOf("=");
+          if (eqIdx > 0) {
+            const key = line.slice(0, eqIdx).trim();
+            const val = line.slice(eqIdx + 1).trim();
+            rows.push({
+              key,
+              val: val || "—",
+              desc: comments.join(" ") || "Configured via environment"
+            });
+            comments = [];
+          }
+        }
+
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td><code>${escapeHtml(r.key)}</code></td>
+            <td><code>${escapeHtml(r.val)}</code></td>
+            <td>${escapeHtml(r.desc)}</td>
+          </tr>
+        `).join("");
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="3" class="muted">Could not load <code>.env.example</code> (${escapeHtml(err.message)}).</td></tr>`;
+      }
+    }
+
+    async function loadEndpoints() {
+      const tbody = document.getElementById("endpoints-table-body");
+      try {
+        const { text, url } = await fetchWithFallback(["./openapi.yaml", "../openapi.yaml"]);
+        const spec = jsyaml.load(text);
+        const httpMethods = ["get", "post", "put", "patch", "delete"];
+        const rows = [];
+
+        for (const [path, item] of Object.entries(spec.paths || {})) {
+          for (const method of httpMethods) {
+            if (!item[method]) continue;
+            const op = item[method];
+            const isPublic = Array.isArray(op.security) && op.security.length === 0;
+            rows.push({
+              method,
+              path,
+              summary: op.summary || "",
+              auth: isPublic ? "Public" : "API Key / Bearer"
+            });
+          }
+        }
+
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td><span class="method">${escapeHtml(r.method)}</span></td>
+            <td><code>${escapeHtml(r.path)}</code></td>
+            <td>${escapeHtml(r.summary)}</td>
+            <td>${escapeHtml(r.auth)}</td>
+          </tr>
+        `).join("");
+
+        SwaggerUIBundle({
+          spec,
+          dom_id: "#swagger-ui",
+          deepLinking: true,
+          defaultModelsExpandDepth: 1
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">Could not load <code>openapi.yaml</code> (${escapeHtml(err.message)}).</td></tr>`;
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+
+    loadEnvVars();
+    loadEndpoints();
+  </script>
+</body>
+</html>
