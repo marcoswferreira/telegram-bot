@@ -172,3 +172,99 @@ fn prompt(msg: &str) -> Result<String, String> {
         .map_err(|e| format!("Failed to read stdin: {e}"))?;
     Ok(buf.trim().to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_channel(id: i64, title: &str) -> tl::enums::Chat {
+        tl::enums::Chat::Channel(tl::types::Channel {
+            creator: true,
+            left: false,
+            broadcast: true,
+            verified: false,
+            megagroup: false,
+            restricted: false,
+            signatures: false,
+            min: false,
+            scam: false,
+            has_link: false,
+            has_geo: false,
+            slowmode_enabled: false,
+            call_active: false,
+            call_not_empty: false,
+            fake: false,
+            gigagroup: false,
+            noforwards: false,
+            join_to_send: false,
+            join_request: false,
+            forum: false,
+            stories_hidden: false,
+            stories_hidden_min: false,
+            stories_unavailable: false,
+            signature_profiles: false,
+            autotranslation: false,
+            broadcast_messages_allowed: false,
+            monoforum: false,
+            forum_tabs: false,
+            in_news: false,
+            forum_sidebar: false,
+            id,
+            access_hash: None,
+            title: title.to_string(),
+            username: None,
+            photo: tl::enums::ChatPhoto::Empty,
+            date: 0,
+            restriction_reason: None,
+            admin_rights: None,
+            banned_rights: None,
+            default_banned_rights: None,
+            participants_count: None,
+            usernames: None,
+            stories_max_id: None,
+            color: None,
+            profile_color: None,
+            emoji_status: None,
+            level: None,
+            subscription_until_date: None,
+            bot_verification_icon: None,
+            send_paid_messages_stars: None,
+            linked_monoforum_id: None,
+            linked_community_id: None,
+            pinned_msg_id: None,
+        })
+    }
+
+    #[test]
+    fn extracts_created_channel_and_group_from_updates() {
+        let updates = tl::enums::Updates::Updates(tl::types::Updates {
+            updates: vec![],
+            users: vec![],
+            chats: vec![sample_channel(123456, "My Channel")],
+            date: 0,
+            seq: 0,
+        });
+        let created = extract_created_chat(updates, false).unwrap();
+        assert_eq!(created.id, -100123456);
+        assert_eq!(created.title, "My Channel");
+        assert_eq!(created.chat_type, "channel");
+
+        let combined = tl::enums::Updates::Combined(tl::types::UpdatesCombined {
+            updates: vec![],
+            users: vec![],
+            chats: vec![sample_channel(999, "My Group")],
+            date: 0,
+            seq_start: 0,
+            seq: 0,
+        });
+        let grp = extract_created_chat(combined, true).unwrap();
+        assert_eq!(grp.id, -100999);
+        assert_eq!(grp.chat_type, "supergroup");
+
+        let empty = tl::enums::Updates::TooLong;
+        assert!(matches!(
+            extract_created_chat(empty, false),
+            Err(DomainError::Upstream(_))
+        ));
+    }
+}
