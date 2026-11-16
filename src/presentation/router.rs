@@ -8,6 +8,7 @@ use axum::{
 
 use crate::{
     application::{
+        create_channel_use_case::CreateChannelUseCase,
         create_invite_link_use_case::CreateInviteLinkUseCase,
         delete_chat_photo_use_case::DeleteChatPhotoUseCase, get_chat_use_case::GetChatUseCase,
         pin_message_use_case::PinMessageUseCase, send_message_use_case::SendMessageUseCase,
@@ -15,9 +16,10 @@ use crate::{
         set_chat_photo_use_case::SetChatPhotoUseCase, set_chat_title_use_case::SetChatTitleUseCase,
         unpin_message_use_case::UnpinMessageUseCase,
     },
+    domain::chat_provisioning_gateway::ChatProvisioningGateway,
     infrastructure::{
-        config::Config, telegram_chat_gateway::TelegramChatGateway,
-        telegram_gateway::TelegramGateway,
+        config::Config, disabled_chat_provisioning_gateway::DisabledChatProvisioningGateway,
+        telegram_chat_gateway::TelegramChatGateway, telegram_gateway::TelegramGateway,
     },
     presentation::{
         app_state::AppState,
@@ -28,11 +30,20 @@ use crate::{
         },
         health_handler::health,
         message_handler::send_message,
+        provisioning_handler::{create_channel, create_group},
     },
 };
 
-/// Compose application layers and build the Axum HTTP `Router`.
+/// Compose application layers using the default (disabled) MTProto provisioning gateway.
 pub fn build_app(config: &Config) -> Router {
+    build_app_with_provisioning(config, Arc::new(DisabledChatProvisioningGateway))
+}
+
+/// Compose application layers with an explicit `ChatProvisioningGateway` implementation.
+pub fn build_app_with_provisioning(
+    config: &Config,
+    provisioning_gateway: Arc<dyn ChatProvisioningGateway>,
+) -> Router {
     let message_gateway = Arc::new(TelegramGateway::new(
         config.telegram_bot_token.clone(),
         config.telegram_base_url.clone(),
@@ -57,10 +68,13 @@ pub fn build_app(config: &Config) -> Router {
         pin_message_use_case: Arc::new(PinMessageUseCase::new(chat_gateway.clone())),
         unpin_message_use_case: Arc::new(UnpinMessageUseCase::new(chat_gateway.clone())),
         create_invite_link_use_case: Arc::new(CreateInviteLinkUseCase::new(chat_gateway)),
+        create_channel_use_case: Arc::new(CreateChannelUseCase::new(provisioning_gateway)),
     };
 
     let api_routes = Router::new()
         .route("/api/v1/messages", post(send_message))
+        .route("/api/v1/chats/channels", post(create_channel))
+        .route("/api/v1/chats/groups", post(create_group))
         .route("/api/v1/chats/{chat_id}", get(get_chat))
         .route("/api/v1/chats/{chat_id}/title", put(set_chat_title))
         .route(

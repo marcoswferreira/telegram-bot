@@ -4,4 +4,4 @@ pub mod infrastructure;
 pub mod presentation;
 
 pub use infrastructure::config::Config;
-pub use presentation::router::build_app;
+pub use presentation::router::{build_app, build_app_with_provisioning};

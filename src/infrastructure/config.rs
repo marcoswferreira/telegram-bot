@@ -8,6 +8,9 @@ pub struct Config {
     pub api_key: Option<String>,
     pub listen_addr: SocketAddr,
     pub telegram_base_url: String,
+    pub telegram_api_id: Option<i32>,
+    pub telegram_api_hash: Option<String>,
+    pub telegram_session_path: String,
 }
 
 impl Config {
@@ -37,13 +40,35 @@ impl Config {
         let telegram_base_url = non_empty(lookup("TELEGRAM_BASE_URL"))
             .unwrap_or_else(|| "https://api.telegram.org".to_string());
 
+        let telegram_api_id = match non_empty(lookup("TELEGRAM_API_ID")) {
+            Some(raw) => Some(
+                raw.parse::<i32>()
+                    .map_err(|e| format!("Invalid TELEGRAM_API_ID '{raw}': {e}"))?,
+            ),
+            None => None,
+        };
+        let telegram_api_hash = non_empty(lookup("TELEGRAM_API_HASH"));
+        let telegram_session_path = non_empty(lookup("TELEGRAM_SESSION_PATH"))
+            .unwrap_or_else(|| "./data/telegram.session".to_string());
+
         Ok(Self {
             telegram_bot_token,
             telegram_chat_id,
             api_key,
             listen_addr,
             telegram_base_url,
+            telegram_api_id,
+            telegram_api_hash,
+            telegram_session_path,
         })
+    }
+
+    /// Return MTProto credentials `(api_id, api_hash)` if both are configured.
+    pub fn mtproto_credentials(&self) -> Option<(i32, &str)> {
+        match (self.telegram_api_id, self.telegram_api_hash.as_deref()) {
+            (Some(id), Some(hash)) => Some((id, hash)),
+            _ => None,
+        }
     }
 }
 
@@ -73,16 +98,21 @@ mod tests {
         assert_eq!(cfg.api_key, None);
         assert_eq!(cfg.listen_addr, "0.0.0.0:8080".parse().unwrap());
         assert_eq!(cfg.telegram_base_url, "https://api.telegram.org");
+        assert_eq!(cfg.mtproto_credentials(), None);
+        assert_eq!(cfg.telegram_session_path, "./data/telegram.session");
     }
 
     #[test]
-    fn loads_all_custom_fields_and_ignores_blank_optional_vars() {
+    fn loads_all_custom_fields_and_mtproto_credentials() {
         let cfg = Config::from_lookup(lookup_from(&[
             ("TELEGRAM_BOT_TOKEN", "  tok:456  "),
             ("TELEGRAM_CHAT_ID", "-100999"),
             ("API_KEY", "   "),
             ("LISTEN_ADDR", "127.0.0.1:9090"),
             ("TELEGRAM_BASE_URL", "http://localhost:9999"),
+            ("TELEGRAM_API_ID", "12345"),
+            ("TELEGRAM_API_HASH", "abcdef"),
+            ("TELEGRAM_SESSION_PATH", "/data/tg.session"),
         ]))
         .unwrap();
         assert_eq!(cfg.telegram_bot_token, "tok:456");
@@ -90,21 +120,27 @@ mod tests {
         assert_eq!(cfg.api_key, None);
         assert_eq!(cfg.listen_addr, "127.0.0.1:9090".parse().unwrap());
         assert_eq!(cfg.telegram_base_url, "http://localhost:9999");
+        assert_eq!(cfg.mtproto_credentials(), Some((12345, "abcdef")));
+        assert_eq!(cfg.telegram_session_path, "/data/tg.session");
     }
 
     #[test]
-    fn rejects_missing_or_empty_token() {
+    fn rejects_missing_or_empty_token_and_invalid_numeric_fields() {
         assert!(Config::from_lookup(lookup_from(&[])).is_err());
         assert!(Config::from_lookup(lookup_from(&[("TELEGRAM_BOT_TOKEN", "  ")])).is_err());
-    }
 
-    #[test]
-    fn rejects_invalid_listen_addr() {
         let err = Config::from_lookup(lookup_from(&[
             ("TELEGRAM_BOT_TOKEN", "tok:123"),
             ("LISTEN_ADDR", "not-an-addr"),
         ]))
         .unwrap_err();
         assert!(err.contains("Invalid LISTEN_ADDR"));
+
+        let err = Config::from_lookup(lookup_from(&[
+            ("TELEGRAM_BOT_TOKEN", "tok:123"),
+            ("TELEGRAM_API_ID", "abc"),
+        ]))
+        .unwrap_err();
+        assert!(err.contains("Invalid TELEGRAM_API_ID"));
     }
 }

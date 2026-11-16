@@ -1,4 +1,6 @@
 pub mod config;
+pub mod disabled_chat_provisioning_gateway;
+pub mod mtproto_chat_gateway;
 pub mod telegram_api_envelope;
 pub mod telegram_chat_dto;
 pub mod telegram_chat_gateway;

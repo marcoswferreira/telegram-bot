@@ -1,3 +1,4 @@
+pub mod create_channel_use_case;
 pub mod create_invite_link_use_case;
 pub mod delete_chat_photo_use_case;
 pub mod get_chat_use_case;

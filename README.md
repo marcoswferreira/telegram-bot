@@ -20,6 +20,9 @@ Copy `.env.example` to `.env` and fill in your values:
 | `API_KEY` | No | — | If set, requires `X-API-Key` or `Authorization: Bearer` |
 | `LISTEN_ADDR` | No | `0.0.0.0:8080` | Bind address and port |
 | `RUST_LOG` | No | `info` | Log level filter |
+| `TELEGRAM_API_ID` | No | — | MTProto API ID from [my.telegram.org](https://my.telegram.org) (for creating channels/groups) |
+| `TELEGRAM_API_HASH` | No | — | MTProto API Hash from [my.telegram.org](https://my.telegram.org) |
+| `TELEGRAM_SESSION_PATH` | No | `./data/telegram.session` | Persistent SQLite session path for MTProto |
 
 > **Note**: Add your bot to the target group, or add it as an **administrator** with post permissions for channels.
 
@@ -113,6 +116,25 @@ curl -X POST http://localhost:8080/api/v1/chats/-1001234567890/invite-links \
   -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" \
   -d '{"name": "VIP", "member_limit": 10}'
 ```
+
+### Create Channels & Groups via MTProto (Optional)
+1. Set `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, and `TELEGRAM_SESSION_PATH` in `.env`.
+2. Authorize the user session once interactively:
+   ```bash
+   ./target/release/telegram-bot --mtproto-login
+   ```
+3. Start the server normally and call:
+   ```bash
+   # Create a broadcast channel
+   curl -X POST http://localhost:8080/api/v1/chats/channels \
+     -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" \
+     -d '{"title": "My New Channel", "description": "Created via MTProto"}'
+
+   # Create a supergroup
+   curl -X POST http://localhost:8080/api/v1/chats/groups \
+     -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" \
+     -d '{"title": "My New Group", "description": "Team chat"}'
+   ```
 
 ## Testing & Code Coverage
 ```bash

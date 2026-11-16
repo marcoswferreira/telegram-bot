@@ -18,6 +18,9 @@ fn test_config(base_url: &str, api_key: Option<&str>) -> Config {
         api_key: api_key.map(str::to_string),
         listen_addr: "127.0.0.1:0".parse().unwrap(),
         telegram_base_url: base_url.to_string(),
+        telegram_api_id: None,
+        telegram_api_hash: None,
+        telegram_session_path: "./data/test.session".to_string(),
     }
 }
 

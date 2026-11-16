@@ -7,6 +7,8 @@ services:
       - .env
     ports:
       - "8080:8080"
+    volumes:
+      - ./data:/data
     mem_limit: 64m
     healthcheck:
       test: ["CMD", "/telegram-bot", "--help"]
