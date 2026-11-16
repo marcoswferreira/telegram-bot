@@ -1,0 +1,13 @@
+services:
+  telegram-bot:
+    build: .
+    container_name: telegram-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD", "/telegram-bot", "--help"]
+      disable: true
